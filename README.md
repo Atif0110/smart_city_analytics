@@ -51,7 +51,7 @@ An **interactive, real-time Smart City Dashboard** for monitoring traffic, weath
 
 ## ⚙️ Installation & Setup
 
-### **1. Clone the repository**
+**1. Clone the repository**
 ```bash
 git clone https://github.com/Atif0110/smart_city_analytics.git
 cd smart_city_analytics
