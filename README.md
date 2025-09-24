@@ -40,7 +40,6 @@ An **interactive, real-time Smart City Dashboard** for monitoring traffic, weath
 ---
 
 ## 📷 Screenshots
-*(Add screenshots after running the app)*  
 
 - Dashboard overview  
 - Real-time traffic heat animation  
