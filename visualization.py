@@ -4,7 +4,7 @@ import pydeck as pdk
 def plot_traffic_map(lat, lon, traffic_flow=None):
 
     # TomTom Traffic Flow Tile Layer
-    TOMTOM_TILE = "https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=YOUR_TOMTOM_KEY"
+    TOMTOM_TILE = "https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=yJfFrSrspOxsP7RGfXeWxVa1GbgSDw0e"
 
     view_state = pdk.ViewState(
         latitude=lat,
@@ -39,3 +39,4 @@ def plot_traffic_map(lat, lon, traffic_flow=None):
     )
 
     st.pydeck_chart(deck)
+
