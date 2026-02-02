@@ -1,119 +1,138 @@
-# app.py
 import streamlit as st
-import time
 import pandas as pd
+
 from data_collection import fetch_weather, fetch_traffic, fetch_pollution
-from data_processing import process_traffic_data, process_weather_data, process_pollution_data
+from data_processing import (
+    process_traffic_data,
+    process_weather_data,
+    process_pollution_data,
+)
 from alerts import show_alert
 from visualization import plot_traffic_map
 from utils.helpers import format_time
-from streamlit import cache_data
 
-st.set_page_config(page_title="Smart City Pro Dashboard", layout="wide")
-st.title("🚦 Smart City Pro Analytics Dashboard")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Smart City Analytics",
+    page_icon="🚦",
+    layout="wide",
+)
 
-# ---------------------
-# Caching API calls
-# ---------------------
-@cache_data(ttl=60)
-def get_weather(city):
-    return fetch_weather(city)
+# ---------------- UI STYLE ----------------
+st.markdown("""
+<style>
+.main {
+    background-color: #f4f6f8;
+}
 
-@cache_data(ttl=60)
-def get_traffic(city):
-    return fetch_traffic(city)
+.block-container {
+    padding-top: 1.5rem;
+}
 
-@cache_data(ttl=60)
-def get_pollution(city):
-    return fetch_pollution(city)
+[data-testid="metric-container"] {
+    background-color: white;
+    padding: 18px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    text-align: center;
+}
 
-# ---------------------
-# Input two cities
-# ---------------------
-city1 = st.sidebar.text_input("Enter First City:", "Pune")
-city2 = st.sidebar.text_input("Enter Second City:", "Lucknow")
+h1, h2, h3 {
+    font-weight: 600;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+st.title("🚦 Smart City Analytics Platform")
+st.caption("Real-time intelligence for traffic, weather, and air quality")
+
+# ---------------- SIDEBAR ----------------
+st.sidebar.header("🌍 City Selection")
+
+city1 = st.sidebar.text_input("City 1", "Pune")
+city2 = st.sidebar.text_input("City 2", "Lucknow")
+
 cities = [city1, city2]
 
-# ---------------------
-# Loop for both cities
-# ---------------------
-for idx, city in enumerate(cities):
-    st.subheader(f"City {idx+1}: {city}")
+# ---------------- CACHE ----------------
+@st.cache_data(ttl=180)
+def load_city(city):
+    weather = fetch_weather(city)
+    traffic = fetch_traffic(city)
+    pollution = fetch_pollution(city)
 
-    with st.spinner(f"Fetching data for {city}..."):
-        weather_raw = get_weather(city)
-        traffic_raw = get_traffic(city)
-        pollution_raw = get_pollution(city)
+    traffic_df, future_df, flow, t_err = process_traffic_data(traffic)
+    weather_data, w_err = process_weather_data(weather)
+    pollution_data, p_err = process_pollution_data(pollution)
+
+    return (
+        weather_data, pollution_data, flow,
+        traffic_df, future_df,
+        t_err, w_err, p_err,
+        traffic
+    )
+
+# ---------------- MAIN ----------------
+for city in cities:
+
+    st.divider()
+    st.subheader(f"📍 {city}")
+
+    with st.spinner("Loading data..."):
+        (
+            weather_data, pollution_data, flow,
+            traffic_df, future_df,
+            t_err, w_err, p_err,
+            traffic_raw
+        ) = load_city(city)
+
+    tab1, tab2, tab3 = st.tabs(
+        ["📊 Overview", "🚗 Traffic Trends", "🗺 Live Map"]
+    )
+
+    # -------- OVERVIEW --------
+    with tab1:
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            if not w_err:
+                st.metric("🌡 Temperature", f"{weather_data['temperature']} °C")
+                st.metric("💧 Humidity", f"{weather_data['humidity']}%")
+
+        with c2:
+            if not p_err:
+                st.metric("🌫 PM2.5", f"{pollution_data['pm25']} µg/m³")
+
+        with c3:
+            if not t_err:
+                st.metric("🚗 Speed", f"{flow.get('currentSpeed','N/A')} km/h")
+                st.metric("🛣 Free Flow", f"{flow.get('freeFlowSpeed','N/A')} km/h")
+
+        st.divider()
+        show_alert(weather_data, pollution_data, flow)
+
+    # -------- TRAFFIC --------
+    with tab2:
+
+        if traffic_df is not None:
+            st.markdown("### Live Traffic Trend")
+            df_live = format_time(traffic_df.copy())
+            st.line_chart(df_live.set_index("time")["speed_kmph"])
+
+        if future_df is not None:
+            st.markdown("### 30-Minute Forecast")
+            df_future = format_time(future_df.copy())
+            st.line_chart(df_future.set_index("time")["speed_kmph"])
+
+    # -------- MAP --------
+    with tab3:
 
         lat = traffic_raw.get("lat") if "error" not in traffic_raw else None
         lon = traffic_raw.get("lon") if "error" not in traffic_raw else None
 
-        traffic_df, traffic_future_df, flow, traffic_err = process_traffic_data(traffic_raw)
-        weather_data, weather_err = process_weather_data(weather_raw)
-        pollution_data, pollution_err = process_pollution_data(pollution_raw)
-
-    # ---------------------
-    # Display Weather, Pollution, Traffic
-    # ---------------------
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("**Weather**")
-        if weather_err:
-            st.error(weather_err)
+        if lat and lon:
+            plot_traffic_map(lat, lon, flow)
         else:
-            st.write(f"Temperature: {weather_data['temperature']} °C")
-            st.write(f"Humidity: {weather_data['humidity']}%")
-            st.write(f"Description: {weather_data['description']}")
-    with col2:
-        st.markdown("**Pollution**")
-        if pollution_err:
-            st.error(pollution_err)
-        else:
-            st.write(f"PM2.5: {pollution_data['pm25']} µg/m³")
-    with col3:
-        st.markdown("**Traffic**")
-        if traffic_err:
-            st.error(traffic_err)
-        else:
-            st.write(f"Current Speed: {flow.get('currentSpeed', 'N/A')} km/h")
-            st.write(f"Free Flow Speed: {flow.get('freeFlowSpeed', 'N/A')} km/h")
-            st.write(f"Confidence: {flow.get('confidence', 'N/A')}")
-
-    # ---------------------
-    # Alerts
-    # ---------------------
-    show_alert(weather_data, pollution_data, flow)
-
-    st.markdown("---")
-
-    # ---------------------
-    # Real-time Traffic Graph
-    # ---------------------
-    st.markdown("**Real-time Traffic Speed (Last 1 Hour)**")
-    placeholder = st.empty()
-    traffic_data_list = []
-
-    for _ in range(6):  # 6 updates, every 10 seconds
-        traffic_raw = get_traffic(city)
-        traffic_df, _, flow, traffic_err = process_traffic_data(traffic_raw)
-        if traffic_err:
-            st.error(traffic_err)
-            break
-        traffic_data_list.append(traffic_df.iloc[-1])
-        df_live = pd.DataFrame(traffic_data_list)
-        df_live = format_time(df_live)
-        placeholder.line_chart(df_live.set_index('time')['speed_kmph'])
-        time.sleep(10)
-
-    st.markdown("**Traffic Speed Prediction (Next 30 mins)**")
-    if traffic_future_df is not None:
-        df_future = format_time(traffic_future_df)
-        st.line_chart(df_future.set_index('time')['speed_kmph'])
-
-    st.markdown("**City Map with Traffic Heat**")
-    if lat and lon:
-        plot_traffic_map(lat, lon, flow)
-    else:
-        st.warning("Map cannot be displayed due to missing coordinates.")
-
-    st.markdown("=====================================")
+            st.warning("Map unavailable")
