@@ -1,42 +1,41 @@
 import streamlit as st
 import pydeck as pdk
-import pandas as pd
 
 def plot_traffic_map(lat, lon, traffic_flow=None):
+
+    # TomTom Traffic Flow Tile Layer
+    TOMTOM_TILE = "https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=YOUR_TOMTOM_KEY"
 
     view_state = pdk.ViewState(
         latitude=lat,
         longitude=lon,
-        zoom=11,
-        pitch=40,
+        zoom=12,
+        pitch=0
     )
 
-    heat_data = []
+    # Base map (clean)
+    base_map = pdk.Layer(
+        "TileLayer",
+        data="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        min_zoom=0,
+        max_zoom=19,
+        tile_size=256,
+    )
 
-    if traffic_flow and "currentSpeed" in traffic_flow:
-        speed = traffic_flow.get("currentSpeed", 0)
-        intensity = max(0, 100 - speed)
-
-        heat_data.append({
-            "lat": lat,
-            "lon": lon,
-            "intensity": intensity
-        })
-
-    heat_df = pd.DataFrame(heat_data)
-
-    heat_layer = pdk.Layer(
-        "HeatmapLayer",
-        data=heat_df,
-        get_position=["lon", "lat"],
-        get_weight="intensity",
-        radiusPixels=80,
+    # Traffic overlay
+    traffic_layer = pdk.Layer(
+        "TileLayer",
+        data=TOMTOM_TILE,
+        min_zoom=0,
+        max_zoom=19,
+        tile_size=256,
+        opacity=0.7
     )
 
     deck = pdk.Deck(
-        layers=[heat_layer],
+        layers=[base_map, traffic_layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/light-v9",
+        tooltip={"text": "Traffic Flow Map"}
     )
 
     st.pydeck_chart(deck)
