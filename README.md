@@ -1,41 +1,21 @@
-# 🚦 Smart City Analytics Dashboard
+🚦 Smart City Analytics Dashboard
 
-> Real-time intelligence for traffic, weather, and air quality — built with Python & Streamlit.
+Real-time intelligence for traffic, weather, and air quality — built with Python & Streamlit.
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?logo=streamlit&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-
+Show Image
+Show Image
+Show Image
+Show Image
 An interactive dashboard for city authorities and citizens to monitor live traffic conditions, environmental data, and receive instant alerts — all from a single, clean interface. Supports simultaneous comparison of two cities.
 
----
+✨ Features
+CategoryHighlights🚗 TrafficLive speed metrics, 30-min forecast, TomTom flow map overlay🌤 WeatherTemperature, humidity, and weather description via OpenWeatherMap🌫 Air QualityReal-time PM2.5 levels with unhealthy-air alerts🔔 AlertsAuto-triggered warnings for heat, congestion, and pollution🗺 MapsInteractive pydeck maps with live traffic tile overlay🏙 Multi-CityCompare any two cities side-by-side simultaneously
 
-## ✨ Features
-
-| Category | Highlights |
-|---|---|
-| 🚗 **Traffic** | Live speed metrics, 30-min forecast, TomTom flow map overlay |
-| 🌤 **Weather** | Temperature, humidity, and weather description via OpenWeatherMap |
-| 🌫 **Air Quality** | Real-time PM2.5 levels with unhealthy-air alerts |
-| 🔔 **Alerts** | Auto-triggered warnings for heat, congestion, and pollution |
-| 🗺 **Maps** | Interactive pydeck maps with live traffic tile overlay |
-| 🏙 **Multi-City** | Compare any two cities side-by-side simultaneously |
-
----
-
-## 🖥 Demo
-
+🖥 Demo
 <!-- Replace with actual screenshots -->
-| Overview | Traffic Trends | Live Map |
-|---|---|---|
-| _(screenshot)_ | _(screenshot)_ | _(screenshot)_ |
+OverviewTraffic TrendsLive Map(screenshot)(screenshot)(screenshot)
 
----
-
-## 🏗 Project Structure
-
-```
+🏗 Project Structure
 smart_city_analytics/
 │
 ├── app.py               # Main Streamlit dashboard & UI layout
@@ -49,25 +29,18 @@ smart_city_analytics/
 ├── requirements.txt     # Python dependencies
 ├── .env                 # API keys (not committed to Git)
 └── .gitignore
-```
 
----
+⚙️ Setup & Installation
+Prerequisites
 
-## ⚙️ Setup & Installation
+Python 3.8+
+API keys from three free services (links below)
 
-### Prerequisites
-- Python 3.8+
-- API keys from three free services (links below)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/Atif0110/smart_city_analytics.git
+1. Clone the repository
+bashgit clone https://github.com/Atif0110/smart_city_analytics.git
 cd smart_city_analytics
-```
-
-### 2. Create and activate a virtual environment
-```bash
-# Create
+2. Create and activate a virtual environment
+bash# Create
 python -m venv venv
 
 # Activate — macOS/Linux
@@ -75,73 +48,46 @@ source venv/bin/activate
 
 # Activate — Windows
 venv\Scripts\activate
-```
-
-### 3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure API keys
-
-Create a `.env` file in the project root:
-
-```env
-OPENWEATHER_KEY=your_openweather_key_here
+3. Install dependencies
+bashpip install -r requirements.txt
+4. Configure API keys
+Create a .env file in the project root:
+envOPENWEATHER_KEY=your_openweather_key_here
 TOMTOM_KEY=your_tomtom_key_here
 WAQI_KEY=your_waqi_key_here
-```
+APIServiceFree TierOpenWeatherMapWeather + Geocoding✅ 1,000 calls/dayTomTomTraffic flow data✅ 2,500 calls/dayWAQIAir quality index✅ Unlimited
+5. Run the dashboard
+bashstreamlit run app.py
+Open your browser at http://localhost:8501.
 
-| API | Service | Free Tier |
-|---|---|---|
-| [OpenWeatherMap](https://openweathermap.org/api) | Weather + Geocoding | ✅ 1,000 calls/day |
-| [TomTom](https://developer.tomtom.com/) | Traffic flow data | ✅ 2,500 calls/day |
-| [WAQI](https://aqicn.org/api/) | Air quality index | ✅ Unlimited |
+🔧 How It Works
 
-### 5. Run the dashboard
-```bash
-streamlit run app.py
-```
+Data Collection — data_collection.py fetches live data from three APIs in parallel using a shared requests.Session for efficiency.
+Processing & Forecasting — data_processing.py normalizes API responses and generates a 30-minute traffic speed forecast using trend extrapolation from the current speed.
+Visualization — visualization.py renders an interactive map via pydeck, layering OpenStreetMap tiles with TomTom's live traffic flow overlay.
+Alerts — alerts.py evaluates thresholds (temperature > 40°C, PM2.5 > 100 µg/m³, speed < 20 km/h) and surfaces warnings in the UI.
+Caching — Streamlit's @st.cache_data(ttl=180) ensures API calls are refreshed every 3 minutes, not on every interaction.
 
-Open your browser at `http://localhost:8501`.
 
----
+🛠 Tech Stack
 
-## 🔧 How It Works
+Frontend — Streamlit
+Maps — pydeck + OpenStreetMap + TomTom Traffic Tiles
+Data — pandas, pytz
+APIs — OpenWeatherMap, TomTom Traffic, WAQI Air Quality
 
-1. **Data Collection** — `data_collection.py` fetches live data from three APIs in parallel using a shared `requests.Session` for efficiency.
-2. **Processing & Forecasting** — `data_processing.py` normalizes API responses and generates a 30-minute traffic speed forecast using trend extrapolation from the current speed.
-3. **Visualization** — `visualization.py` renders an interactive map via `pydeck`, layering OpenStreetMap tiles with TomTom's live traffic flow overlay.
-4. **Alerts** — `alerts.py` evaluates thresholds (temperature > 40°C, PM2.5 > 100 µg/m³, speed < 20 km/h) and surfaces warnings in the UI.
-5. **Caching** — Streamlit's `@st.cache_data(ttl=180)` ensures API calls are refreshed every 3 minutes, not on every interaction.
 
----
+🚀 Possible Enhancements
 
-## 🛠 Tech Stack
+ Historical trend analysis with time-series storage
+ Push notifications via email or Telegram
+ AQI breakdown (PM10, NO₂, CO, O₃)
+ Exportable PDF/CSV reports
+ Multi-city ranking leaderboard
 
-- **Frontend** — [Streamlit](https://streamlit.io/)
-- **Maps** — [pydeck](https://deckgl.readthedocs.io/) + OpenStreetMap + TomTom Traffic Tiles
-- **Data** — pandas, pytz
-- **APIs** — OpenWeatherMap, TomTom Traffic, WAQI Air Quality
 
----
+👤 Author
+Atif — GitHub
 
-## 🚀 Possible Enhancements
-
-- [ ] Historical trend analysis with time-series storage
-- [ ] Push notifications via email or Telegram
-- [ ] AQI breakdown (PM10, NO₂, CO, O₃)
-- [ ] Exportable PDF/CSV reports
-- [ ] Multi-city ranking leaderboard
-
----
-
-## 👤 Author
-
-**Atif** — [GitHub](https://github.com/Atif0110)
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
+📄 License
+This project is licensed under the MIT License.
